@@ -6,11 +6,20 @@ from fragile_cache import LoudVariable, FragileCache
 
 class Circle:
     def __init__(self, radius: float):
+        # LoudVariable is a wrapper, that allows attachment of callbacks
+        # on events of value reassignment and access. This is necessary to
+        # invoke cache invalidation on change
         self._radius = LoudVariable(radius)
+        # FragileCache is a class that can be called just like a function,
+        # but also keeps the cached value. Cached value will be invalidated if
+        # any of the variables in list of dependencies will change.
+        # on_recall event is added for illustration.
         self._area_fragile = FragileCache(self.calc_area,
                                           dependencies=[self._radius],
                                           on_recall=lambda: print("recalled"))
 
+    # Although this is not necessary, declaring radius as a property allows to
+    # use it in code just like a normal variable.
     @property
     def radius(self) -> float:
         return self._radius.value
@@ -36,7 +45,7 @@ def main() -> None:
     assert circle.area > 0  # recalled
     assert abs(circle.area - 314.1592653589793) < 1e-3  # recalled
     circle.radius = 15
-    print(circle.area)  # crealculated
+    print(circle.area)  # recalculated
     assert circle.area > 0  # recalled
     assert abs(circle.area - 706.8583470577034) < 1e-3  # recalled
 
